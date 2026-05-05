@@ -1,5 +1,5 @@
 # SafarGo — Laravel + React + MySQL
-
+Partie admin et client
 ## Structure du projet
 
 ```
