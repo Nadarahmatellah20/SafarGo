@@ -1,0 +1,313 @@
+/* ================= RESET ================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", system-ui;
+}
+
+/* ================= PAGE ================= */
+.auth-wrap {
+  min-height: 100vh;
+  background: #1e3f6f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* ================= CARD ================= */
+.auth-box {
+  width: 900px;
+  height: 520px;
+  display: flex;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #1e3f6f;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+  animation: pop 0.45s ease;
+}
+
+/* LOGIN → image right */
+.auth-box.login {
+  flex-direction: row-reverse;
+}
+
+/* REGISTER → image left */
+.auth-box.register {
+  flex-direction: row;
+}
+
+/* ================= IMAGE SIDE ================= */
+.auth-left {
+  flex: 1;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.auth-box.login .auth-left {
+  background-image: url('/login-bg.png');
+}
+
+.auth-box.register .auth-left {
+  background-image: url("https://img.freepik.com/premium-photo/world-tourism-day-3d-rendering-background-ai-generative_649024-11800.jpg");
+}
+
+.auth-left::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.auth-quote {
+  position: absolute;
+  bottom: 26px;
+  left: 26px;
+  z-index: 2;
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.3;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+  text-transform: uppercase;
+}
+
+/* ================= FORM SIDE ================= */
+.auth-right {
+  flex: 1;
+  background: #1e3f6f;
+  color: white;
+  padding: 42px 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  animation: fadeSlide 0.4s ease;
+}
+
+/* ================= TITLE ================= */
+.auth-title {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+}
+
+.auth-box.forgot h3 {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+/* ================= SWITCH ================= */
+.switch {
+  display: flex;
+  justify-content: flex-start;
+  gap: 24px;
+  margin-bottom: 18px;
+  padding-left: 2px;
+}
+
+.switch span {
+  cursor: pointer;
+  opacity: 0.6;
+  font-weight: 700;
+  transition: 0.25s;
+}
+
+.switch span.active {
+  opacity: 1;
+  border-bottom: 2px solid white;
+  padding-bottom: 4px;
+}
+
+.switch span:hover {
+  opacity: 1;
+}
+
+/* ================= FORM ================= */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.auth-form input {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 32px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+}
+
+.primary-btn {
+  margin-top: 4px;
+  padding: 14px;
+  border-radius: 32px;
+  border: none;
+  background: white;
+  color: #1e3f6f;
+  font-weight: 800;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.primary-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.forgot {
+  margin-top: -6px;
+  margin-bottom: 6px;
+  align-self: flex-end;
+  font-size: 12px;
+  opacity: 0.8;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+.forgot:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* OR */
+.or-separator {
+  margin: 14px 0;
+  text-align: center;
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+/* ================= SOCIAL ================= */
+.social {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.social-btn {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-weight: 700;
+  transition: 0.25s ease;
+}
+
+.social-btn img {
+  width: 20px;
+  height: 20px;
+  background: white;
+  padding: 2px;
+  border-radius: 4px;
+}
+
+.social-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* ================= ANIMATIONS ================= */
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.985);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 900px) {
+  .auth-box {
+    width: 95%;
+    height: auto;
+    flex-direction: column;
+  }
+
+  .auth-left {
+    height: 230px;
+  }
+
+  .auth-right {
+    padding: 28px;
+  }
+
+  .switch {
+    justify-content: center;
+  }
+}
+
+.auth-right input,
+.auth-right button {
+  animation: fadeSlide 0.35s ease;
+}
+
+.auth-box.forgot .auth-right {
+  justify-content: center;
+}
+
+.auth-box.forgot form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.auth-box.forgot input {
+  padding: 12px 16px;
+  border-radius: 25px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+}
+
+.auth-box.forgot button {
+  padding: 12px;
+  border-radius: 25px;
+  border: none;
+  background: white;
+  color: #1e3f6f;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.auth-box.forgot .forgot {
+  margin-top: 10px;
+  align-self: flex-end;
+  font-size: 12px;
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+.auth-box.forgot .forgot:hover {
+  opacity: 1;
+  text-decoration: underline;
+}

@@ -1,0 +1,46 @@
+/* ================= THEME TOKENS ================= */
+
+/* DARK MODE (default) */
+:root {
+  --bg: #1e3f6f;
+  --text: #ffffff;
+
+  --card: #ffffff;
+  --card-text: #1e3f6f;
+
+  --bg-soft: rgba(255,255,255,.12);
+  --border: rgba(255,255,255,.18);
+
+  --sidebar: linear-gradient(180deg, #0b2c4d, #0e3a63);
+
+  --btn: #1e3f6f;
+  --btn-text: #ffffff;
+
+  --shadow: 0 30px 70px rgba(0,0,0,.35);
+}
+
+/* ================= LIGHT MODE ================= */
+body.light {
+  --bg: #f4f6f8;
+  --text: #0b2c4d;
+
+  --card: #ffffff;
+  --card-text: #0b2c4d;
+
+  --bg-soft: rgba(0,0,0,.05);
+  --border: rgba(0,0,0,.12);
+
+  --sidebar: linear-gradient(180deg, #0b2c4d, #0e3a63);
+
+  --btn: #0b2c4d;
+  --btn-text: #ffffff;
+
+  --shadow: 0 20px 45px rgba(0,0,0,.12);
+}
+
+/* ================= APPLY ================= */
+body {
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s ease, color 0.3s ease;
+}
