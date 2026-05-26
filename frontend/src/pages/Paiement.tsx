@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import AppFooter from "../components/AppFooter";
+import AppIcon from "../components/AppIcon";
 import { useAuth } from "../context/AuthContext";
+import { usePreferences } from "../context/PreferencesContext";
 import { paiementsApi, type PaymentMethod, type Payment } from "../api/reservations";
 
 export default function PaiementPage() {
   const { logout } = useAuth();
+  const { formatMoney, formatDate, t } = usePreferences();
   const navigate = useNavigate();
   const [methods, setMethods] = useState<PaymentMethod[]>([]);
   const [history, setHistory] = useState<Payment[]>([]);
@@ -36,11 +40,11 @@ export default function PaiementPage() {
 
   const handleAdd = async () => {
     if (!form.last4 || !form.expiry || !form.holder) {
-      alert("Veuillez remplir tous les champs");
+      alert(t("requiredFields"));
       return;
     }
     if (form.last4.length !== 4 || !/^\d{4}$/.test(form.last4)) {
-      alert("Veuillez saisir exactement 4 chiffres");
+      alert(t("fourDigitsRequired"));
       return;
     }
     setSaving(true);
@@ -55,7 +59,7 @@ export default function PaiementPage() {
         const first = Object.values(errors)[0] as string[];
         alert(first[0]);
       } else {
-        alert(e?.response?.data?.message || "Erreur lors de l'ajout");
+        alert(e?.response?.data?.message || t("addError"));
       }
     } finally {
       setSaving(false);
@@ -63,17 +67,17 @@ export default function PaiementPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Supprimer cette carte ?")) return;
+    if (!window.confirm(t("deleteCardConfirm"))) return;
     await paiementsApi.deleteMethod(id);
     load();
   };
 
-  const CARD_ICONS: Record<string, string> = {
-    visa: "https://cdn-icons-png.flaticon.com/512/349/349221.png",
-    mastercard: "https://cdn-icons-png.flaticon.com/512/349/349228.png",
-    amex: "https://cdn-icons-png.flaticon.com/512/349/349230.png",
-    paypal: "https://cdn-icons-png.flaticon.com/512/174/174861.png",
-  };
+  const cardIcon = (type: string) =>
+    (["visa", "mastercard", "amex", "paypal"].includes(type) ? type : "visa") as
+      | "visa"
+      | "mastercard"
+      | "amex"
+      | "paypal";
 
   const totalPaid = history
     .filter((p) => p.status === "reussi")
@@ -82,69 +86,79 @@ export default function PaiementPage() {
   return (
     <div className="dashboard">
       <Sidebar setIsAuth={() => logout().then(() => navigate("/"))} />
-      <main className="content">
-        <div className="page-header">
+      <main className="content payment-content">
+        <div className="page-header payment-page-header">
           <div>
-            <h2>Paiements</h2>
-            <p>Gérez vos cartes et consultez l'historique</p>
+            <h2>{t("paymentsTitle")}</h2>
+            <p>{t("paymentsSubtitle")}</p>
+          </div>
+          <div className="payment-header-actions">
+            <span>{t("securePayment")}</span>
+            <button onClick={() => setShowAdd(true)}>{t("addCard")}</button>
           </div>
         </div>
 
-        <div className="stats-grid">
+        <div className="stats-grid payment-stats">
           <div className="stat-box">
             <b>{methods.length}</b>
-            <small>Cartes enregistrées</small>
+            <small>{t("savedCards")}</small>
           </div>
           <div className="stat-box">
             <b>{history.filter((p) => p.status === "reussi").length}</b>
-            <small>Paiements réussis</small>
+            <small>{t("successfulPayments")}</small>
           </div>
           <div className="stat-box">
-            <b>{totalPaid.toLocaleString("fr-FR")} €</b>
-            <small>Total payé</small>
+            <b>{formatMoney(totalPaid)}</b>
+            <small>{t("totalPaid")}</small>
           </div>
         </div>
 
         {loading ? (
-          <div className="loading-state">Chargement...</div>
+          <div className="loading-state">{t("loading")}</div>
         ) : (
           <>
             <div className="section-header" style={{ marginTop: 24 }}>
-              <h3>Mes cartes</h3>
-              <button className="link-btn" onClick={() => setShowAdd(true)}>
-                + Ajouter une carte
+              <h3>{t("myCards")}</h3>
+              <button className="link-btn payment-add-link" onClick={() => setShowAdd(true)}>
+                + {t("addCard")}
               </button>
             </div>
 
             {methods.length === 0 ? (
               <div className="empty-state">
-                <p>Aucune carte enregistrée.</p>
+                <p>{t("noSavedCards")}</p>
               </div>
             ) : (
               <div className="cards-grid">
                 {methods.map((m) => (
-                  <div key={m.id} className="payment-card-item">
+                  <div key={m.id} className={`payment-card-item payment-card-${m.type}`}>
+                    <div className="payment-card-visual">
+                      <div className="payment-card-topline">
+                        <span className="payment-card-chip" />
+                        {m.is_default && (
+                          <span className="badge-default">{t("default")}</span>
+                        )}
+                      </div>
+                      <AppIcon name={cardIcon(m.type)} className="card-logo" title={m.type} />
+                      <p className="card-number">**** **** **** {m.last4}</p>
+                      <div className="payment-card-meta">
+                        <span>{m.holder}</span>
+                        <span>{m.expiry}</span>
+                      </div>
+                    </div>
                     <div className="payment-card-left">
-                      <img
-                        src={CARD_ICONS[m.type] || CARD_ICONS.visa}
-                        alt={m.type}
-                        className="card-logo"
-                      />
                       <div>
-                        <p className="card-number">**** **** **** {m.last4}</p>
+                        <span className="payment-method-label">{m.type.toUpperCase()}</span>
                         <p className="card-holder">{m.holder}</p>
-                        <p className="card-expiry">Exp. {m.expiry}</p>
+                        <p className="card-expiry">{t("savedCardHint")}</p>
                       </div>
                     </div>
                     <div className="payment-card-right">
-                      {m.is_default && (
-                        <span className="badge-default">Par défaut</span>
-                      )}
                       <button
                         className="btn-delete"
                         onClick={() => handleDelete(m.id)}
                       >
-                        Supprimer
+                        {t("delete")}
                       </button>
                     </div>
                   </div>
@@ -153,38 +167,38 @@ export default function PaiementPage() {
             )}
 
             <div className="section-header" style={{ marginTop: 32 }}>
-              <h3>Historique des paiements</h3>
+              <h3>{t("paymentHistory")}</h3>
             </div>
 
             {history.length === 0 ? (
               <div className="empty-state">
-                <p>Aucun paiement effectué.</p>
+                <p>{t("noPayments")}</p>
               </div>
             ) : (
               <div className="payment-history">
                 <div className="history-header">
-                  <span>Description</span>
-                  <span>Méthode</span>
-                  <span>Date</span>
-                  <span>Statut</span>
-                  <span>Montant</span>
+                  <span>{t("description")}</span>
+                  <span>{t("method")}</span>
+                  <span>{t("date")}</span>
+                  <span>{t("status")}</span>
+                  <span>{t("amount")}</span>
                 </div>
                 {history.map((p) => (
                   <div key={p.id} className="history-row">
-                    <span>{p.description}</span>
-                    <span className="muted">{p.method_label}</span>
-                    <span className="muted">
-                      {new Date(p.created_at).toLocaleDateString("fr-FR")}
+                    <span className="history-description">{p.description}</span>
+                    <span className="muted history-method">{p.method_label}</span>
+                    <span className="muted history-date">
+                      {formatDate(p.created_at)}
                     </span>
                     <span className={`status-badge status-${p.status}`}>
                       {p.status === "reussi"
-                        ? "Réussi"
+                        ? t("paidStatus")
                         : p.status === "echec"
-                        ? "Échoué"
-                        : "Remboursé"}
+                        ? t("failedStatus")
+                        : t("refundedStatus")}
                     </span>
                     <span className="history-amount">
-                      {p.amount.toLocaleString("fr-FR")} €
+                      {formatMoney(p.amount)}
                     </span>
                   </div>
                 ))}
@@ -195,12 +209,10 @@ export default function PaiementPage() {
 
         {showAdd && (
           <div className="modal">
-            <div className="modal-box">
-              <h3>Ajouter une carte</h3>
+            <div className="modal-box payment-modal-box">
+              <h3>{t("addCard")}</h3>
 
-              <label style={{ fontWeight: 700, fontSize: 13 }}>
-                Type de carte
-              </label>
+              <label className="payment-form-label">{t("cardType")}</label>
               <select
                 className="modal-select"
                 value={form.type}
@@ -213,7 +225,7 @@ export default function PaiementPage() {
               </select>
 
               <input
-                placeholder="4 derniers chiffres"
+                placeholder={t("lastFour")}
                 maxLength={4}
                 value={form.last4}
                 onChange={(e) =>
@@ -221,27 +233,28 @@ export default function PaiementPage() {
                 }
               />
               <input
-                placeholder="Date d'expiration (ex: 12/28)"
+                placeholder={t("expiryPlaceholder")}
                 value={form.expiry}
                 onChange={(e) => setForm({ ...form, expiry: e.target.value })}
               />
               <input
-                placeholder="Titulaire de la carte"
+                placeholder={t("cardHolder")}
                 value={form.holder}
                 onChange={(e) => setForm({ ...form, holder: e.target.value })}
               />
 
               <div className="modal-actions">
                 <button onClick={handleAdd} disabled={saving}>
-                  {saving ? "Enregistrement..." : "Ajouter"}
+                  {saving ? t("saving") : t("addCard")}
                 </button>
                 <button className="ghost" onClick={() => setShowAdd(false)}>
-                  Annuler
+                  {t("cancel")}
                 </button>
               </div>
             </div>
           </div>
         )}
+        <AppFooter compact />
       </main>
     </div>
   );

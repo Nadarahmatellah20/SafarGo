@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import TopNavbar from "../components/TopNavbar";
+import PromoTicker from "../components/PromoTicker";
+import AppFooter from "../components/AppFooter";
+import AppIcon from "../components/AppIcon";
 import { useAuth } from "../context/AuthContext";
+import { usePreferences } from "../context/PreferencesContext";
 import { reservationsApi, type Reservation } from "../api/reservations";
 
 const FEATURED = [
@@ -25,8 +29,42 @@ const FEATURED = [
   },
 ];
 
+const FALLBACK_IMAGES: Record<string, string> = {
+  voyage: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800",
+  evenement: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800",
+  hajj: "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?w=800",
+  omra: "https://images.unsplash.com/photo-1564769625905-50e93615e769?w=800",
+  transport: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800",
+};
+
+const QUICK_ACTIONS = [
+  { path: "/voyages", labelKey: "exploreTrips", icon: "offers" },
+  { path: "/reservation", labelKey: "myReservations", icon: "reservations" },
+  { path: "/paiement", labelKey: "payments", icon: "payment" },
+  { path: "/documents", labelKey: "documents", icon: "tickets" },
+  { path: "/profile", labelKey: "myProfile", icon: "profile" },
+] as const;
+
+const imageFor = (r: Reservation) => {
+  const voyage = r.voyage;
+  return (
+    voyage?.gallery?.[0] ||
+    voyage?.image ||
+    FALLBACK_IMAGES[voyage?.offer_type || "voyage"] ||
+    FALLBACK_IMAGES.voyage
+  );
+};
+
+const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>, r: Reservation) => {
+  const fallback = FALLBACK_IMAGES[r.voyage?.offer_type || "voyage"] || FALLBACK_IMAGES.voyage;
+  if (e.currentTarget.src !== fallback) {
+    e.currentTarget.src = fallback;
+  }
+};
+
 export default function Home() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const { formatMoney, formatDate, t } = usePreferences();
   const navigate = useNavigate();
   const [reservations, setReservations] = useState<Reservation[]>([]);
 
@@ -50,36 +88,62 @@ export default function Home() {
     .slice(0, 3);
 
   return (
-    <div className="dashboard">
-      <Sidebar setIsAuth={() => logout().then(() => navigate("/"))} />
-      <main className="content">
+    <div className="home-layout">
+      <TopNavbar />
+      <main className="content home-content">
         <div className="page-header">
           <div>
-            <h2>Bonjour, {user?.name?.split(" ")[0]}</h2>
-            <p>Bienvenue sur SafarGo — prêt pour votre prochain voyage ?</p>
+            <h2>{t("hello")}, {user?.name?.split(" ")[0]}</h2>
+            <p>{t("homeSubtitle")}</p>
           </div>
         </div>
+
+        <PromoTicker />
+
+        <section className="marketing-video-section">
+          <video
+            className="marketing-video"
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1400&q=80"
+          >
+            <source
+              src="https://videos.pexels.com/video-files/2169880/2169880-uhd_2560_1440_30fps.mp4"
+              type="video/mp4"
+            />
+          </video>
+          <div className="marketing-video-overlay">
+            <span>{t("landingBadge")}</span>
+            <h1>{t("marketingTitle")}</h1>
+            <p>{t("marketingSubtitle")}</p>
+            <button onClick={() => navigate("/voyages")}>
+              {t("exploreOffers")}
+            </button>
+          </div>
+        </section>
 
         <div className="stats-grid">
           <div className="stat-box">
             <b>{confirmed}</b>
-            <small>Voyages confirmés</small>
+            <small>{t("confirmedTrips")}</small>
           </div>
           <div className="stat-box">
             <b>{pending}</b>
-            <small>En attente</small>
+            <small>{t("pending")}</small>
           </div>
           <div className="stat-box">
-            <b>{totalSpent.toLocaleString("fr-FR")} €</b>
-            <small>Total dépensé</small>
+            <b>{formatMoney(totalSpent)}</b>
+            <small>{t("totalSpent")}</small>
           </div>
         </div>
 
         <div className="home-section">
           <div className="section-header">
-            <h3>Destinations populaires</h3>
+            <h3>{t("popularDestinations")}</h3>
             <button className="link-btn" onClick={() => navigate("/voyages")}>
-              Voir tout →
+              {t("seeAll")} →
             </button>
           </div>
           <div className="featured-grid">
@@ -93,7 +157,7 @@ export default function Home() {
                 <div className="featured-info">
                   <span className="featured-name">{f.destination}</span>
                   <span className="featured-country">{f.country}</span>
-                  <span className="featured-price">dès {f.price} €</span>
+                  <span className="featured-price">{t("from")} {formatMoney(f.price)}</span>
                 </div>
               </div>
             ))}
@@ -102,20 +166,20 @@ export default function Home() {
 
         <div className="home-section">
           <div className="section-header">
-            <h3>Prochains voyages</h3>
+            <h3>{t("upcomingTrips")}</h3>
             <button
               className="link-btn"
               onClick={() => navigate("/reservation")}
             >
-              Voir tout →
+              {t("seeAll")} →
             </button>
           </div>
           {upcoming.length === 0 ? (
             <div className="empty-state">
               <p>
-                Aucun voyage prévu.{" "}
+                {t("noUpcomingTrips")}{" "}
                 <span onClick={() => navigate("/voyages")}>
-                  Explorer les offres →
+                  {t("exploreOffers")} →
                 </span>
               </p>
             </div>
@@ -124,28 +188,29 @@ export default function Home() {
               {upcoming.map((r) => (
                 <div key={r.id} className="upcoming-card">
                   <img
-                    src={r.voyage?.image}
+                    src={imageFor(r)}
                     alt={r.voyage?.destination}
+                    onError={(e) => handleImageError(e, r)}
                   />
                   <div className="upcoming-info">
                     <b>
                       {r.voyage?.destination}, {r.voyage?.country}
                     </b>
                     <p>
-                      Départ :{" "}
-                      {new Date(r.departure_date).toLocaleDateString("fr-FR")}
+                      {t("departure")} :{" "}
+                      {formatDate(r.departure_date)}
                     </p>
                     <p>
-                      {r.passengers} passager(s) ·{" "}
-                      {r.total_price.toLocaleString("fr-FR")} €
+                      {r.passengers} {t("passengers")} ·{" "}
+                      {formatMoney(r.total_price)}
                     </p>
                   </div>
                   <span className={`status-badge status-${r.status}`}>
                     {r.status === "en_attente"
-                      ? "En attente"
+                      ? t("pending")
                       : r.status === "confirmee"
-                      ? "Confirmée"
-                      : "Annulée"}
+                      ? t("confirmed")
+                      : t("cancelled")}
                   </span>
                 </div>
               ))}
@@ -155,42 +220,22 @@ export default function Home() {
 
         <div className="home-section">
           <div className="section-header">
-            <h3>Accès rapide</h3>
+            <h3>{t("quickAccess")}</h3>
           </div>
           <div className="quick-actions">
-            <div className="quick-card" onClick={() => navigate("/voyages")}>
-              <img
-                src="https://cdn-icons-png.flaticon.com/512/854/854866.png"
-                alt=""
-              />
-              <span>Explorer les voyages</span>
-            </div>
-            <div
-              className="quick-card"
-              onClick={() => navigate("/reservation")}
-            >
-              <img
-                src="https://cdn-icons-png.flaticon.com/512/1828/1828640.png"
-                alt=""
-              />
-              <span>Mes réservations</span>
-            </div>
-            <div className="quick-card" onClick={() => navigate("/paiement")}>
-              <img
-                src="https://cdn-icons-png.flaticon.com/512/633/633611.png"
-                alt=""
-              />
-              <span>Paiements</span>
-            </div>
-            <div className="quick-card" onClick={() => navigate("/profile")}>
-              <img
-                src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
-                alt=""
-              />
-              <span>Mon profil</span>
-            </div>
+            {QUICK_ACTIONS.map((action) => (
+              <div
+                key={action.path}
+                className="quick-card"
+                onClick={() => navigate(action.path)}
+              >
+                <AppIcon name={action.icon} className="quick-icon" />
+                <span>{t(action.labelKey)}</span>
+              </div>
+            ))}
           </div>
         </div>
+        <AppFooter compact />
       </main>
     </div>
   );

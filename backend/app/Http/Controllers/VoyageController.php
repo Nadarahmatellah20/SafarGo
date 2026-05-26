@@ -16,6 +16,15 @@ class VoyageController extends Controller
         'Océan Indien' => ['Maldives', 'Maurice', 'Réunion', 'Seychelles'],
     ];
 
+    private static array $typeMap = [
+        'Voyages'     => 'voyage',
+        'Événements'  => 'evenement',
+        'Evenements'  => 'evenement',
+        'Hajj'        => 'hajj',
+        'Omra'        => 'omra',
+        'Transport'   => 'transport',
+    ];
+
     public function index(Request $request)
     {
         $query = Voyage::query();
@@ -25,15 +34,32 @@ class VoyageController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('destination', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('pays', 'like', "%{$search}%");
+                  ->orWhere('pays', 'like', "%{$search}%")
+                  ->orWhere('transport_type', 'like', "%{$search}%")
+                  ->orWhere('lieu_depart', 'like', "%{$search}%")
+                  ->orWhere('lieu_arrivee', 'like', "%{$search}%");
             });
         }
 
         if ($request->filled('category') && $request->category !== 'Tous') {
-            $pays = self::$categoryMap[$request->category] ?? [];
-            if (!empty($pays)) {
+            if (isset(self::$typeMap[$request->category])) {
+                $query->where('type_offre', self::$typeMap[$request->category]);
+            } elseif ($request->category === 'Hajj & Omra') {
+                $query->whereIn('type_offre', ['hajj', 'omra']);
+            } else {
+                $pays = self::$categoryMap[$request->category] ?? [];
+                if (!empty($pays)) {
                 $query->whereIn('pays', $pays);
+                }
             }
+        }
+
+        if ($request->filled('type_offre') && $request->type_offre !== 'tous') {
+            $query->where('type_offre', $request->type_offre);
+        }
+
+        if ($request->filled('transport_type')) {
+            $query->where('transport_type', $request->transport_type);
         }
 
         if ($request->filled('min_prix')) {

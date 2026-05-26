@@ -10,6 +10,7 @@ export interface Reservation {
   passengers: number;
   total_price: number;
   status: "en_attente" | "confirmee" | "annulee";
+  ticket_number: string;
   created_at: string;
 }
 
@@ -28,8 +29,11 @@ export interface Payment {
   amount: number;
   status: "reussi" | "echec" | "rembourse";
   method_label: string;
+  invoice_number: string;
+  paid_at: string;
   created_at: string;
   description: string;
+  reservation?: Reservation;
 }
 
 export const reservationsApi = {

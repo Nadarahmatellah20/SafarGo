@@ -26,6 +26,8 @@ class Paiement extends Model
         'status',
         'description',
         'method_label',
+        'invoice_number',
+        'paid_at',
     ];
 
     public function getAmountAttribute(): float
@@ -59,6 +61,16 @@ class Paiement extends Model
         }
 
         return 'Carte bancaire';
+    }
+
+    public function getInvoiceNumberAttribute(): string
+    {
+        return 'SG-FAC-' . str_pad((string) $this->id, 6, '0', STR_PAD_LEFT);
+    }
+
+    public function getPaidAtAttribute(): ?string
+    {
+        return $this->created_at?->format('Y-m-d');
     }
 
     public function user()

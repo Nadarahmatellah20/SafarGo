@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/admin-login', [AuthController::class, 'adminLogin']);
+    Route::get('/social/{provider}/redirect', [AuthController::class, 'socialRedirect']);
+    Route::get('/social/{provider}/callback', [AuthController::class, 'socialCallback']);
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 });
@@ -23,6 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/user', [AuthController::class, 'updateUser']);
         Route::put('/password', [AuthController::class, 'changePassword']);
         Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('/logout-all', [AuthController::class, 'logoutAll']);
     });
 
     // Voyages
@@ -52,10 +56,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/voyages/{id}', [AdminController::class, 'destroyVoyage']);
 
         Route::get('/users', [AdminController::class, 'indexUsers']);
+        Route::put('/users/{id}', [AdminController::class, 'updateUser']);
+        Route::delete('/users/{id}', [AdminController::class, 'destroyUser']);
         Route::put('/users/{id}/toggle-admin', [AdminController::class, 'toggleAdmin']);
+        Route::put('/users/{id}/toggle-active', [AdminController::class, 'toggleActive']);
 
         Route::get('/reservations', [AdminController::class, 'indexReservations']);
         Route::put('/reservations/{id}/cancel', [AdminController::class, 'cancelReservation']);
         Route::delete('/reservations/{id}', [AdminController::class, 'destroyReservation']);
+
+        Route::get('/paiements', [AdminController::class, 'indexPaiements']);
     });
 });

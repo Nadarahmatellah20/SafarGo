@@ -1,14 +1,34 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import ThemeToggle from "./ThemeToggle";
+import PreferenceControls from "./PreferenceControls";
 import logo from "../assets/logo.png";
 import { useAuth } from "../context/AuthContext";
+import { usePreferences } from "../context/PreferencesContext";
+import AppIcon from "./AppIcon";
 
-function Sidebar() {
+const clientLinks = [
+  { to: "/home", labelKey: "home", icon: "home" },
+  { to: "/voyages", labelKey: "offers", icon: "offers" },
+  { to: "/reservation", labelKey: "reservations", icon: "reservations" },
+  { to: "/paiement", labelKey: "payment", icon: "payment" },
+  { to: "/documents", labelKey: "tickets", icon: "tickets" },
+] as const;
+
+const adminLinks = [
+  { to: "/admin", labelKey: "dashboard", icon: "dashboard" },
+] as const;
+
+function Sidebar({ setIsAuth }: { setIsAuth?: () => void | Promise<void> }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { t } = usePreferences();
+  const links = user?.is_admin ? adminLinks : clientLinks;
 
   const handleLogout = async () => {
-    await logout();
+    if (setIsAuth) {
+      await setIsAuth();
+    } else {
+      await logout();
+    }
     navigate("/", { replace: true });
   };
 
@@ -18,45 +38,36 @@ function Sidebar() {
         <img src={logo} alt="SafarGo" className="logo-img" />
       </div>
 
-      <p className="sidebar-title">MENU</p>
-
-      <NavLink to="/home" className={({ isActive }) => "sidebar-link" + (isActive ? " active" : "")}>
-        <img className="menu-icon" src="https://cdn-icons-png.flaticon.com/512/1946/1946436.png" alt="Home" />
-        Accueil
-      </NavLink>
-
-      <NavLink to="/voyages" className={({ isActive }) => "sidebar-link" + (isActive ? " active" : "")}>
-        <img className="menu-icon" src="https://cdn-icons-png.flaticon.com/512/854/854866.png" alt="Voyages" />
-        Voyages / Offres
-      </NavLink>
-
-      <NavLink to="/reservation" className={({ isActive }) => "sidebar-link" + (isActive ? " active" : "")}>
-        <img className="menu-icon" src="https://cdn-icons-png.flaticon.com/512/1828/1828640.png" alt="Réservations" />
-        Réservations
-      </NavLink>
-
-      <NavLink to="/paiement" className={({ isActive }) => "sidebar-link" + (isActive ? " active" : "")}>
-        <img className="menu-icon" src="https://cdn-icons-png.flaticon.com/512/633/633611.png" alt="Paiement" />
-        Paiement
-      </NavLink>
-
-      <NavLink to="/profile" className={({ isActive }) => "sidebar-link" + (isActive ? " active" : "")}>
-        <img className="menu-icon" src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" alt="Profil" />
-        Mon Profil
-      </NavLink>
-
-      {user?.is_admin && (
-        <NavLink to="/admin" className={({ isActive }) => "sidebar-link sidebar-admin" + (isActive ? " active" : "")}>
-          <img className="menu-icon" src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png" alt="Admin" />
-          Administration
-        </NavLink>
+      {user && (
+        <button className="sidebar-user" onClick={() => navigate("/profile")}>
+          <span>{user.name?.charAt(0).toUpperCase()}</span>
+          <div>
+            <b>{user.name}</b>
+            <small>{user.is_admin ? "Administrateur" : "Client"}</small>
+          </div>
+        </button>
       )}
 
+      <nav className="sidebar-nav">
+        <p className="sidebar-title">{user?.is_admin ? t("adminSpace") : t("clientSpace")}</p>
+
+        {links.map((link) => (
+          <NavLink
+            key={link.to}
+            to={link.to}
+            className={({ isActive }) => "sidebar-link" + (isActive ? " active" : "")}
+          >
+            <AppIcon className="menu-icon" name={link.icon} />
+            <span>{t(link.labelKey)}</span>
+          </NavLink>
+        ))}
+      </nav>
+
       <div className="sidebar-bottom">
-        <ThemeToggle />
+        <PreferenceControls />
         <button className="logout-btn" onClick={handleLogout}>
-          <img src="https://cdn-icons-png.flaticon.com/512/1828/1828490.png" alt="Logout" />
-          Se déconnecter
+          <AppIcon name="logout" className="logout-icon" />
+          {t("logout")}
         </button>
       </div>
     </aside>

@@ -29,6 +29,7 @@ class Reservation extends Model
         'passengers',
         'total_price',
         'status',
+        'ticket_number',
     ];
 
     public function getDepartureDateAttribute(): ?string
@@ -54,6 +55,11 @@ class Reservation extends Model
             'annulée'    => 'annulee',
             default      => $this->statut,
         };
+    }
+
+    public function getTicketNumberAttribute(): string
+    {
+        return 'SG-BIL-' . str_pad((string) $this->id, 6, '0', STR_PAD_LEFT);
     }
 
     public function user()

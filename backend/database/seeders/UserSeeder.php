@@ -17,6 +17,8 @@ class UserSeeder extends Seeder
                 'password'   => Hash::make('client1234'),
                 'phone'      => '+212611111111',
                 'is_admin'   => 0,
+                'documents_enabled' => 1,
+                'is_active'  => 1,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]

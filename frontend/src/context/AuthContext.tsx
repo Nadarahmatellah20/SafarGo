@@ -7,6 +7,7 @@ interface AuthContextType {
   isAuth: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  adminLogin: (email: string, password: string) => Promise<User>;
   register: (payload: {
     name: string;
     email: string;
@@ -15,6 +16,7 @@ interface AuthContextType {
     password_confirmation: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
+  logoutAll: () => Promise<void>;
   refreshUser: () => Promise<void>;
   setUser: (u: User | null) => void;
 }
@@ -27,6 +29,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.getItem("token")
   );
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const handleExpired = () => {
+      setUser(null);
+      setToken(null);
+    };
+
+    window.addEventListener("auth:expired", handleExpired);
+    return () => window.removeEventListener("auth:expired", handleExpired);
+  }, []);
 
   useEffect(() => {
     if (token) {
@@ -50,6 +62,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(res.user);
   };
 
+  const adminLogin = async (email: string, password: string) => {
+    const res = await authApi.adminLogin(email, password);
+    localStorage.setItem("token", res.token);
+    setToken(res.token);
+    setUser(res.user);
+    return res.user;
+  };
+
   const register = async (payload: Parameters<typeof authApi.register>[0]) => {
     const res = await authApi.register(payload);
     localStorage.setItem("token", res.token);
@@ -60,6 +80,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await authApi.logout();
+    } catch (_) {}
+    localStorage.removeItem("token");
+    setToken(null);
+    setUser(null);
+  };
+
+  const logoutAll = async () => {
+    try {
+      await authApi.logoutAll();
     } catch (_) {}
     localStorage.removeItem("token");
     setToken(null);
@@ -79,8 +108,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuth: !!user,
         loading,
         login,
+        adminLogin,
         register,
         logout,
+        logoutAll,
         refreshUser,
         setUser,
       }}

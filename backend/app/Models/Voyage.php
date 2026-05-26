@@ -17,8 +17,14 @@ class Voyage extends Model
         'prix',
         'duree',
         'image',
+        'images',
         'note',
         'places_disponibles',
+        'type_offre',
+        'transport_type',
+        'lieu_depart',
+        'lieu_arrivee',
+        'date_evenement',
     ];
 
     protected $casts = [
@@ -26,6 +32,8 @@ class Voyage extends Model
         'note'               => 'float',
         'places_disponibles' => 'integer',
         'duree'              => 'integer',
+        'date_evenement'      => 'date:Y-m-d',
+        'images'              => 'array',
     ];
 
     protected $appends = [
@@ -35,6 +43,13 @@ class Voyage extends Model
         'rating',
         'available_spots',
         'category',
+        'offer_type',
+        'offer_label',
+        'transport',
+        'departure_place',
+        'arrival_place',
+        'event_date',
+        'gallery',
         'departure_dates',
     ];
 
@@ -98,7 +113,66 @@ class Voyage extends Model
 
     public function getCategoryAttribute(): string
     {
+        if ($this->type_offre === 'hajj' || $this->type_offre === 'omra') {
+            return 'Hajj & Omra';
+        }
+
+        if ($this->type_offre === 'evenement') {
+            return 'Événements';
+        }
+
+        if ($this->type_offre === 'transport') {
+            return 'Transport';
+        }
+
         return self::$categoryMap[$this->pays] ?? 'Monde';
+    }
+
+    public function getOfferTypeAttribute(): string
+    {
+        return $this->type_offre ?? 'voyage';
+    }
+
+    public function getOfferLabelAttribute(): string
+    {
+        return match ($this->type_offre) {
+            'evenement' => 'Billetterie événement',
+            'hajj'      => 'Package Hajj',
+            'omra'      => 'Package Omra',
+            'transport' => 'Transport',
+            default     => 'Voyage',
+        };
+    }
+
+    public function getTransportAttribute(): ?string
+    {
+        return $this->transport_type;
+    }
+
+    public function getDeparturePlaceAttribute(): ?string
+    {
+        return $this->lieu_depart;
+    }
+
+    public function getArrivalPlaceAttribute(): ?string
+    {
+        return $this->lieu_arrivee;
+    }
+
+    public function getEventDateAttribute(): ?string
+    {
+        return $this->date_evenement?->format('Y-m-d');
+    }
+
+    public function getGalleryAttribute(): array
+    {
+        $images = $this->images ?? [];
+
+        if ($this->image && !in_array($this->image, $images, true)) {
+            array_unshift($images, $this->image);
+        }
+
+        return array_values(array_filter($images));
     }
 
     public function getDepartureDatesAttribute(): array
@@ -106,6 +180,10 @@ class Voyage extends Model
         $dates = [];
         $base  = Carbon::now()->startOfMonth()->addMonth();
         $seed  = (int) $this->id;
+
+        if ($this->date_evenement) {
+            return [$this->date_evenement->format('Y-m-d')];
+        }
 
         for ($i = 0; $i < 5; $i++) {
             $offset  = ($seed * 3 + $i * 7) % 25;

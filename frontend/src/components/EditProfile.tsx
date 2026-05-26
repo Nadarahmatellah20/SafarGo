@@ -1,4 +1,6 @@
 import { useState } from "react";
+import PasswordField from "./PasswordField";
+import { usePreferences } from "../context/PreferencesContext";
 
 interface User {
   name: string;
@@ -16,6 +18,7 @@ interface EditProfileProps {
 }
 
 function EditProfile({ user, onSave, onClose }: EditProfileProps) {
+  const { t } = usePreferences();
   const [form, setForm] = useState({
     name: user.name || "",
     email: user.email || "",
@@ -43,7 +46,7 @@ function EditProfile({ user, onSave, onClose }: EditProfileProps) {
 
     if (passwords.oldPassword || passwords.newPassword || passwords.confirmPassword) {
       if (passwords.newPassword !== passwords.confirmPassword) {
-        alert("Les mots de passe ne correspondent pas");
+        alert(t("passwordMismatch"));
         return;
       }
       payload.oldPassword = passwords.oldPassword;
@@ -56,54 +59,51 @@ function EditProfile({ user, onSave, onClose }: EditProfileProps) {
   return (
     <div className="modal">
       <div className="modal-box">
-        <h3>Modifier le profil</h3>
+        <h3>{t("editProfile")}</h3>
 
         <input
-          placeholder="Nom complet"
+          placeholder={t("fullName")}
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
         <input
-          placeholder="Téléphone"
+          placeholder={t("phone")}
           value={form.phone}
           onChange={(e) => setForm({ ...form, phone: e.target.value })}
         />
         <input
-          placeholder="Pays"
+          placeholder={t("country")}
           value={form.country}
           onChange={(e) => setForm({ ...form, country: e.target.value })}
         />
 
         <label style={{ fontSize: 13, fontWeight: 700, color: "#1e3f6f" }}>
-          Changer la photo
+          {t("changePhoto")}
         </label>
         <input type="file" accept="image/*" onChange={handlePhoto} />
 
         <hr style={{ border: "none", borderTop: "1px solid #c8d8ee" }} />
-        <h4>Changer le mot de passe</h4>
+        <h4>{t("changePassword")}</h4>
 
-        <input
-          type="password"
-          placeholder="Ancien mot de passe"
+        <PasswordField
+          placeholder={t("oldPassword")}
           value={passwords.oldPassword}
           onChange={(e) => setPasswords({ ...passwords, oldPassword: e.target.value })}
         />
-        <input
-          type="password"
-          placeholder="Nouveau mot de passe"
+        <PasswordField
+          placeholder={t("newPassword")}
           value={passwords.newPassword}
           onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
         />
-        <input
-          type="password"
-          placeholder="Confirmer le mot de passe"
+        <PasswordField
+          placeholder={t("confirmPassword")}
           value={passwords.confirmPassword}
           onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
         />
 
         <div className="modal-actions">
-          <button onClick={handleSave}>Enregistrer</button>
-          <button className="ghost" onClick={onClose}>Annuler</button>
+          <button onClick={handleSave}>{t("save")}</button>
+          <button className="ghost" onClick={onClose}>{t("cancel")}</button>
         </div>
       </div>
     </div>

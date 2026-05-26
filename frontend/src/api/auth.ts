@@ -5,7 +5,9 @@ export interface User {
   name: string;
   email: string;
   phone?: string;
+  photo?: string;
   is_admin?: boolean;
+  is_active?: boolean;
 }
 
 export interface AuthResponse {
@@ -16,6 +18,11 @@ export interface AuthResponse {
 export const authApi = {
   async login(email: string, password: string): Promise<AuthResponse> {
     const { data } = await client.post("/auth/login", { email, password });
+    return data;
+  },
+
+  async adminLogin(email: string, password: string): Promise<AuthResponse> {
+    const { data } = await client.post("/auth/admin-login", { email, password });
     return data;
   },
 
@@ -32,6 +39,10 @@ export const authApi = {
 
   async logout(): Promise<void> {
     await client.post("/auth/logout");
+  },
+
+  async logoutAll(): Promise<void> {
+    await client.post("/auth/logout-all");
   },
 
   async getUser(): Promise<User> {
@@ -52,7 +63,7 @@ export const authApi = {
     });
   },
 
-  async forgotPassword(email: string): Promise<{ code: string }> {
+  async forgotPassword(email: string): Promise<{ code: string | number }> {
     const { data } = await client.post("/auth/forgot-password", { email });
     return data;
   },

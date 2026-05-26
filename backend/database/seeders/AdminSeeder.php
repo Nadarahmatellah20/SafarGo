@@ -17,6 +17,8 @@ class AdminSeeder extends Seeder
                 'password'   => Hash::make('admin1234'),
                 'phone'      => '+212600000000',
                 'is_admin'   => 1,
+                'documents_enabled' => 1,
+                'is_active'  => 1,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]
